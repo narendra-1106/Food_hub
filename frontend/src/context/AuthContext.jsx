@@ -36,6 +36,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('foodhub_user', JSON.stringify(userData));
       saveProfileHelper(data.name, data.email);
       setUser(userData);
+      return userData;
     } catch (err) {
       const msg = err.response?.data?.message || 'Invalid email or password / Database connection error';
       throw new Error(msg);
@@ -50,6 +51,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('foodhub_user', JSON.stringify(userData));
       saveProfileHelper(name, email);
       setUser(userData);
+      return userData;
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed. User may already exist or backend is unreachable.';
       throw new Error(msg);
@@ -57,9 +59,10 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('foodhub_token');
-    localStorage.removeItem('foodhub_user');
+    // Complete application reset on logout
+    localStorage.clear();
     setUser(null);
+    window.location.href = '/login';
   };
 
   return (

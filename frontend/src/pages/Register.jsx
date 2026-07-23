@@ -14,7 +14,12 @@ export default function Register() {
     e.preventDefault();
     try {
       await register(name, email, password);
-      navigate('/');
+      const profile = JSON.parse(localStorage.getItem('foodhub_profile') || '{}');
+      if (!profile.location || !profile.phone) {
+        navigate('/profile');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message || err.response?.data?.message || 'Registration failed');
     }

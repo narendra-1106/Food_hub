@@ -13,7 +13,12 @@ export default function Login() {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate('/');
+      const profile = JSON.parse(localStorage.getItem('foodhub_profile') || '{}');
+      if (!profile.location || !profile.phone) {
+        navigate('/profile');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message || err.response?.data?.message || 'Login failed');
     }
