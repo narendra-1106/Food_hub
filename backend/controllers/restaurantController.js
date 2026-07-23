@@ -1,9 +1,20 @@
 const Restaurant = require('../models/Restaurant');
 const MenuItem = require('../models/MenuItem');
 
+// GET /api/restaurants - get all active restaurants
+exports.getAllRestaurants = async (req, res) => {
+  try {
+    const restaurants = await Restaurant.find({ isActive: true }).limit(20);
+    res.json(restaurants);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET /api/restaurants/nearby - geospatial query
 exports.getNearbyRestaurants = async (req, res) => {
   try {
-    const { lng, lat, maxDistance = 5000, cuisine } = req.query; // maxDistance in meters
+    const { lng, lat, maxDistance = 5000, cuisine } = req.query;
 
     if (!lng || !lat) {
       return res.status(400).json({ message: 'Longitude and Latitude are required' });
@@ -28,6 +39,20 @@ exports.getNearbyRestaurants = async (req, res) => {
 
     const restaurants = await Restaurant.find(query).limit(20);
     res.json(restaurants);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET /api/restaurants/:id - get restaurant + its menu items
+exports.getRestaurantById = async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findById(req.params.id);
+    if (!restaurant) {
+      return res.status(404).json({ message: 'Restaurant not found' });
+    }
+    const menuItems = await MenuItem.find({ restaurantId: req.params.id, isAvailable: true });
+    res.json({ restaurant, menuItems });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
