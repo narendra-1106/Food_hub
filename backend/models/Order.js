@@ -15,16 +15,9 @@ const orderSchema = new mongoose.Schema({
     enum: ['PENDING', 'ACCEPTED', 'ORDER_PREPARING', 'READY_FOR_PICKUP', 'COURIER_ASSIGNED', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'],
     default: 'PENDING'
   },
-  deliveryLocation: {
-    type: {
-      type: String,
-      enum: ['Point'],
-      default: 'Point'
-    },
-    coordinates: {
-      type: [Number],
-      required: true
-    }
+  deliveryAddress: {
+    type: String,
+    required: true
   },
   reviewId: { type: mongoose.Schema.Types.ObjectId, ref: 'Review' },
   createdAt: { type: Date, default: Date.now },

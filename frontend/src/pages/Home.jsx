@@ -1,22 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MOCK_RESTAURANTS } from '../mockData';
+import { getRestaurants } from '../api';
 
 const categories = ['All', 'Burgers', 'Pizza', 'Indian', 'Biryani', 'Fast Food'];
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const profile = JSON.parse(localStorage.getItem('foodhub_profile') || '{}');
 
-  const filtered = MOCK_RESTAURANTS.filter(r => {
+  useEffect(() => {
+    async function fetchRestaurants() {
+      try {
+        const data = await getRestaurants();
+        setRestaurants(data.length ? data : MOCK_RESTAURANTS);
+      } catch (error) {
+        console.error('Failed to fetch from API, using mock data', error);
+        setRestaurants(MOCK_RESTAURANTS);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRestaurants();
+  }, []);
+
+  const filtered = restaurants.filter(r => {
     const matchCat = activeCategory === 'All' || r.cuisine.includes(activeCategory);
     const matchSearch = r.name.toLowerCase().includes(search.toLowerCase()) ||
       r.cuisine.some(c => c.toLowerCase().includes(search.toLowerCase()));
     return matchCat && matchSearch;
   });
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: '5rem' }}>Loading restaurants...</div>;
+  }
 
   return (
     <div>

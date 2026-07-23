@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { placeOrder } from '../api';
 
 export default function Checkout() {
   const { cart, total, restaurantId, restaurantName, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -12,30 +13,73 @@ export default function Checkout() {
   const DELIVERY_FEE = 49;
   const grandTotal = total + DELIVERY_FEE;
 
-  const handleConfirmOrder = () => {
+  const handleConfirmOrder = async () => {
+    const token = localStorage.getItem('foodhub_token');
+    if (!token) {
+      alert('Please login first to place an order.');
+      navigate('/login');
+      return;
+    }
+
     if (!profile.firstName || !profile.location) {
       alert('Please complete your profile first! We need your name and delivery address.');
       navigate('/profile');
       return;
     }
 
-    const details = {
-      orderId: 'ORD' + Math.floor(Math.random() * 900000 + 100000),
-      restaurant: restaurantName,
-      items: [...cart],
-      subtotal: total,
-      deliveryFee: DELIVERY_FEE,
-      grandTotal,
-      deliveryAddress: profile.location,
-      customerName: `${profile.firstName} ${profile.lastName || ''}`.trim(),
-      phone: profile.phone,
-      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
-      estimatedDelivery: '30-40 min'
-    };
+    try {
+      const orderItems = cart.map(item => ({
+        menuItemId: item.menuItemId,
+        quantity: item.quantity,
+        priceAtTimeOfOrder: item.price
+      }));
+      
+      const apiOrder = await placeOrder({
+        restaurantId,
+        items: orderItems,
+        totalAmount: total,
+        deliveryAddress: profile.location
+      });
 
-    setOrderDetails(details);
-    setOrderPlaced(true);
-    clearCart();
+      const details = {
+        orderId: apiOrder._id,
+        restaurant: restaurantName,
+        items: [...cart],
+        subtotal: total,
+        deliveryFee: DELIVERY_FEE,
+        grandTotal,
+        deliveryAddress: profile.location,
+        customerName: `${profile.firstName} ${profile.lastName || ''}`.trim(),
+        phone: profile.phone,
+        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+        estimatedDelivery: '30-40 min'
+      };
+
+      setOrderDetails(details);
+      setOrderPlaced(true);
+      clearCart();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to place order. Using local fallback for demonstration.');
+      
+      const details = {
+        orderId: 'ORD' + Math.floor(Math.random() * 900000 + 100000),
+        restaurant: restaurantName,
+        items: [...cart],
+        subtotal: total,
+        deliveryFee: DELIVERY_FEE,
+        grandTotal,
+        deliveryAddress: profile.location,
+        customerName: `${profile.firstName} ${profile.lastName || ''}`.trim(),
+        phone: profile.phone,
+        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+        estimatedDelivery: '30-40 min'
+      };
+
+      setOrderDetails(details);
+      setOrderPlaced(true);
+      clearCart();
+    }
   };
 
   // ── ORDER SUCCESS SCREEN ──────────────────────────────────

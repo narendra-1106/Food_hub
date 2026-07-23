@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 exports.placeOrder = async (req, res) => {
   try {
-    const { restaurantId, items, totalAmount, deliveryLocation } = req.body;
+    const { restaurantId, items, totalAmount, deliveryAddress } = req.body;
     
     // Simulate Payment Gateway
     const paymentSuccess = true; 
@@ -17,7 +17,7 @@ exports.placeOrder = async (req, res) => {
       restaurantId,
       items,
       totalAmount,
-      deliveryLocation
+      deliveryAddress
     });
 
     // Notify restaurant via WebSocket

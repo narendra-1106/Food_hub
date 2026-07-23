@@ -1,16 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { MOCK_RESTAURANTS, MOCK_MENU } from '../mockData';
+import { getRestaurantById } from '../api';
 
 export default function RestaurantDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, cart, totalItems } = useCart();
   const [addedId, setAddedId] = useState(null);
+  
+  const [restaurant, setRestaurant] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const restaurant = MOCK_RESTAURANTS.find(r => r._id === id);
-  const menuItems = MOCK_MENU[id] || [];
+  useEffect(() => {
+    async function fetchDetail() {
+      try {
+        const data = await getRestaurantById(id);
+        setRestaurant(data.restaurant);
+        setMenuItems(data.menuItems);
+      } catch (error) {
+        console.error('Failed to fetch from API, using mock data', error);
+        const mockRest = MOCK_RESTAURANTS.find(r => r._id === id);
+        setRestaurant(mockRest);
+        setMenuItems(MOCK_MENU[id] || []);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchDetail();
+  }, [id]);
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', padding: '8rem 2rem' }}>Loading...</div>;
+  }
 
   if (!restaurant) {
     return (
