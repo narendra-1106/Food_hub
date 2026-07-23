@@ -48,7 +48,14 @@ io.on('connection', (socket) => {
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
+  .then(async () => {
+    console.log('Connected to MongoDB');
+    try {
+      await mongoose.connection.collection('users').dropIndex('phone_1');
+    } catch (e) {
+      // index already dropped or not present
+    }
+  })
   .catch(err => console.error('MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 5000;
