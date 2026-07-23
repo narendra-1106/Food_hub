@@ -37,16 +37,8 @@ export function AuthProvider({ children }) {
       saveProfileHelper(data.name, data.email);
       setUser(userData);
     } catch (err) {
-      // If server returned explicit message (e.g. Invalid credentials)
-      if (err.response && err.response.data && err.response.data.message) {
-        throw err;
-      }
-      // If server is unreachable (e.g. running on Vercel before backend is deployed), fallback gracefully for demo
-      const fallbackUser = { _id: 'user_' + Date.now(), name: email.split('@')[0], email, role: 'consumer' };
-      localStorage.setItem('foodhub_token', 'demo_token_' + Date.now());
-      localStorage.setItem('foodhub_user', JSON.stringify(fallbackUser));
-      saveProfileHelper(fallbackUser.name, fallbackUser.email);
-      setUser(fallbackUser);
+      const msg = err.response?.data?.message || 'Invalid email or password / Database connection error';
+      throw new Error(msg);
     }
   };
 
@@ -59,16 +51,8 @@ export function AuthProvider({ children }) {
       saveProfileHelper(name, email);
       setUser(userData);
     } catch (err) {
-      // If server returned explicit message (e.g. User already exists)
-      if (err.response && err.response.data && err.response.data.message) {
-        throw err;
-      }
-      // If server is unreachable (e.g. running on Vercel before backend is deployed), fallback gracefully for demo
-      const fallbackUser = { _id: 'user_' + Date.now(), name, email, role: 'consumer' };
-      localStorage.setItem('foodhub_token', 'demo_token_' + Date.now());
-      localStorage.setItem('foodhub_user', JSON.stringify(fallbackUser));
-      saveProfileHelper(name, email);
-      setUser(fallbackUser);
+      const msg = err.response?.data?.message || 'Registration failed. User may already exist or backend is unreachable.';
+      throw new Error(msg);
     }
   };
 
