@@ -55,7 +55,13 @@ export default function Checkout() {
         estimatedDelivery: '30-40 min'
       };
 
+      const saveToOrderHistory = (orderData) => {
+        const existing = JSON.parse(localStorage.getItem('foodhub_orders') || '[]');
+        localStorage.setItem('foodhub_orders', JSON.stringify([orderData, ...existing]));
+      };
+
       setOrderDetails(details);
+      saveToOrderHistory(details);
       setOrderPlaced(true);
       clearCart();
     } catch (err) {

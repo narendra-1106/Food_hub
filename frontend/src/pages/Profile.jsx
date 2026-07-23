@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getMyOrders } from '../api';
 
 export default function Profile() {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -18,6 +21,17 @@ export default function Profile() {
     if (stored) {
       setForm(JSON.parse(stored));
     }
+    const fetchOrders = async () => {
+      try {
+        const data = await getMyOrders();
+        setOrders(data);
+      } catch (err) {
+        console.error('Failed to fetch orders:', err);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+    fetchOrders();
   }, []);
 
   const handleChange = (e) => {
@@ -167,7 +181,7 @@ export default function Profile() {
                   cursor: locating ? 'wait' : 'pointer'
                 }}
               >
-                {locating ? '🔄 Locating...' : '🎯 Auto-Detect My Location'}
+                {locating ? '🔄 Detecting...' : '🎯 Use My Current Location'}
               </button>
             </div>
             <textarea
@@ -188,13 +202,48 @@ export default function Profile() {
         </form>
 
         {/* Loyalty Card */}
-        <div className="loyalty-card">
+        <div className="loyalty-card" style={{ marginTop: '2rem' }}>
           <div className="loyalty-icon">🏆</div>
           <div>
             <h4>Loyalty Points</h4>
             <p className="loyalty-pts">100 pts</p>
             <p className="loyalty-hint">Earn points with every order & review!</p>
           </div>
+        </div>
+
+        {/* Previous Orders */}
+        <div className="orders-section" style={{ marginTop: '2rem', background: 'var(--card-bg)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--border-color)' }}>
+          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>📦</span> Previous Orders
+          </h3>
+          {loadingOrders ? (
+            <p style={{ color: 'var(--text-muted)' }}>Loading orders...</p>
+          ) : orders.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {orders.map((order, i) => (
+                <div key={order._id || i} style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '0.5rem', background: 'var(--bg-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <strong>Order #{order._id?.substring(0, 8) || 'N/A'}</strong>
+                    <span style={{ 
+                      background: order.status === 'delivered' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)', 
+                      color: order.status === 'delivered' ? '#10b981' : '#f59e0b',
+                      padding: '0.2rem 0.5rem', borderRadius: '999px', fontSize: '0.8rem', textTransform: 'capitalize' 
+                    }}>
+                      {order.status || 'Pending'}
+                    </span>
+                  </div>
+                  <p style={{ margin: '0 0 0.5rem 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </p>
+                  <p style={{ margin: 0, fontWeight: 'bold' }}>Total: ₹{order.totalAmount}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>
+              You haven't placed any orders yet.
+            </p>
+          )}
         </div>
       </div>
     </div>

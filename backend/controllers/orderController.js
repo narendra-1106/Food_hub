@@ -92,3 +92,14 @@ exports.getAiReviewPrompts = async (req, res) => {
   ];
   res.json({ prompts: suggestions });
 };
+
+exports.getMyOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ consumerId: req.user._id })
+      .populate('restaurantId', 'name imageUrl address')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

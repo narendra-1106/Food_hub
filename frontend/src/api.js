@@ -39,4 +39,9 @@ export const placeOrder = async (orderData) => {
   return data;
 };
 
+export const getMyOrders = async () => {
+  const { data } = await api.get('/api/orders/my-orders');
+  return data;
+};
+
 export default api;
